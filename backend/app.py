@@ -1,12 +1,16 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from algokit_utils.beta.algorand_client import AlgorandClient, PayParams
+from algokit_utils.beta.algorand_client import (
+    AlgorandClient, 
+    PayParams, 
+    AssetCreateParams 
+)
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# In-memory list to store wallets and their balances
 wallets = []
+assets = []
 
 @app.route('/create-wallet', methods=['GET'])
 def create_wallet():
@@ -53,7 +57,46 @@ def dispense_algorand(address):
         return jsonify({'message': f'Dispensed {amount_in_algo} Algorand', 'address': address}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/create-asset', methods=['GET'])
+def create_asset():
 
+    try:
+        algorand = AlgorandClient.default_local_net()
+        dispenser = algorand.account.dispenser()
+        creator = algorand.account.random()
+        
+        algorand.send.payment(
+            PayParams(
+                sender=dispenser.address,
+                receiver=creator.address,
+                amount=10_000_000
+            )
+        )
+
+        sent_txn = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator.address,
+                total=1000,
+                asset_name="TestToken",
+                unit_name="test",
+                manager=creator.address,
+                clawback=creator.address,
+                freeze=creator.address
+            )
+        )
+
+        # Extracting Asset ID
+        asset_id = sent_txn["confirmation"]["asset-index"]
+        print(asset_id)
+
+        return jsonify({'name': asset_id, 'supply': asset_id, 'id': asset_id}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/assets', methods=['GET'])
+def get_assets():
+    return jsonify(assets), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
