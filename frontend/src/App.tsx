@@ -4,13 +4,14 @@ import { Table, Button, Alert, Modal, Form } from 'react-bootstrap';
 
 const App: React.FC = () => {
   const [wallets, setWallets] = useState<{ address: string; balance: number }[]>([]);
-  const [assets, setAssets] = useState<{ name: string; supply: number; id: number }[]>([]);
+  const [assets, setAssets] = useState<{ id: number; name: string; unit: string; supply: number;  }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showDispenseModal, setShowDispenseModal] = useState(false);
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [dispenseAmount, setDispenseAmount] = useState<number>(10); // Default dispense amount
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
   const [newAssetName, setNewAssetName] = useState<string>('');
+  const [newAssetUnit, setNewAssetUnit] = useState<string>('');
   const [newAssetSupply, setNewAssetSupply] = useState<number>(0);
 
   const createWallet = async () => {
@@ -26,7 +27,7 @@ const App: React.FC = () => {
 
   const createAsset = async () => {
     try {
-      await axios.get('http://127.0.0.1:5000/create-asset');
+      await axios.post(`http://127.0.0.1:5000/create-asset`, { name: newAssetName, unit: newAssetUnit, supply: newAssetSupply });
       fetchAssets(); // Fetch updated assets after creating a new asset
       setError(null);
       setShowAssetModal(false); // Close modal after creating asset
@@ -126,14 +127,18 @@ const App: React.FC = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
+            <th>ID</th> 
             <th>Name</th>
+            <th>Unit Name</th>
             <th>Supply</th>
           </tr>
         </thead>
         <tbody>
           {assets.map((asset, index) => (
             <tr key={index}>
+              <td>{asset.id}</td>
               <td>{asset.name}</td>
+              <td>{asset.unit}</td>
               <td>{asset.supply}</td>
             </tr>
           ))}
@@ -180,6 +185,14 @@ const App: React.FC = () => {
                 type="text"
                 value={newAssetName}
                 onChange={(e) => setNewAssetName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group controlId="assetUnitName">
+              <Form.Label>Asset Unit Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={newAssetUnit}
+                onChange={(e) => setNewAssetUnit(e.target.value)}
               />
             </Form.Group>
             <Form.Group controlId="assetSupply">
