@@ -112,8 +112,8 @@ const Localnet: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchWallets(); // Fetch wallets on initial render
-    fetchAssets(); // Fetch assets on initial render
+    // fetchWallets();
+    // fetchAssets(); 
   }, []);
 
   return (
