@@ -60,7 +60,6 @@ const App: React.FC = () => {
           </Routes>
         </Container>
       </Router>
-
     </WalletProvider>
   );
 };
