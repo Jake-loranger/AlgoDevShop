@@ -13,9 +13,9 @@ const TxnLab: React.FC = () => {
     const [walletBalance, setWalletBalance] = useState(0);
 
     const algorandClient = new algosdk.Algodv2(
-        '',
-        'https://testnet-api.algonode.cloud',
-        ''
+        '', // No API key required
+        'https://mainnet-api.algonode.cloud', // Mainnet endpoint
+        ''  // No API key required
     );
 
     const connectPeraWallet = async () => {
@@ -32,10 +32,11 @@ const TxnLab: React.FC = () => {
 
     const connectDeflyWallet = async () => {
         try {
-            const address = await deflyWallet.connect();
-            // setWalletAddress(address);
+            const accounts = await deflyWallet.connect();
+            const address = accounts[0];
+            setWalletAddress(address);
             setIsWalletConnected(true);
-            // fetchWalletBalance(address);
+            fetchWalletBalance(address);
         } catch (error) {
             console.error('Failed to connect to Defly Wallet', error);
         }
