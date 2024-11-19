@@ -12,6 +12,35 @@ CORS(app)
 wallets = []
 assets = []
 
+
+@app.route('/transfer', methods=['POST'])
+def transfer_algorand(address):
+    try:
+        data = request.get_json()
+        amount = data.get('amount')  # Default to dispensing 1 Algo if not specified
+        amount_in_microalgo = amount * 1_000_000  # Convert to microAlgo
+        receiver = data.get("reciever")
+        sender = data.get("sender")
+
+        algorand = AlgorandClient.default_local_net()
+
+        # Sending Algorand to the specified wallet address
+        algorand.send.payment(
+            PayParams(
+                sender=sender.address,
+                receiver=receiver,
+                amount=amount_in_microalgo
+            )
+        )
+
+
+        # Respond with a success message
+        return jsonify({'message': f'{amount} Algo sent from {sender} to {receiver}'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
+
 @app.route('/create-wallet', methods=['GET'])
 def create_wallet():
     try:
