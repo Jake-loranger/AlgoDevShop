@@ -70,7 +70,7 @@ const Wallet: React.FC = () => {
             <div className="text-center mb-4">
                 {!isPeraConnected ? (
                     <Button variant="dark m-3" onClick={connectDeflyWallet}>
-                        Connect Defly
+                        Connect Defly Wallet
                     </Button>
                 ) : (
                     <>

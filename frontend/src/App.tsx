@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { Container, Nav, Navbar, Row, Col, Image } from 'react-bootstrap';
-import Localnet from './containers/localnet/Localnet';
-import Wallet from './containers/wallet/Wallet';
-import TxnLab from './containers/txnlab/TaxLab';
+import Localnet from './views/localnet/Localnet';
+import Wallet from './views/wallet/Wallet';
+import TxnLab from './views/txnlab/TaxLab';
 import {
   NetworkId,
   WalletId,
