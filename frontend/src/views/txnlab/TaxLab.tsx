@@ -62,6 +62,44 @@ const TxnLab: React.FC = () => {
         }
     }
 
+    const createAsset = async () => {
+        try {
+            if (!activeAddress) {
+                throw new Error('[App] No active account');
+            }
+
+            const atc = new algosdk.AtomicTransactionComposer()
+            const suggestedParams = await algodClient.getTransactionParams().do()
+
+            const transaction = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+                from: activeAddress,
+                total: 1000000,
+                decimals: 0,
+                defaultFrozen: false,
+                unitName: 'ALGOTKN',
+                assetName: 'AlgoDevShopToken',
+                manager: activeAddress,
+                reserve: undefined,
+                freeze: undefined,
+                clawback: undefined,
+                suggestedParams,
+            });
+
+            atc.addTransaction({ txn: transaction, signer: transactionSigner })
+
+            const result = await atc.execute(algodClient, 4)
+            console.info(`[App] Asset creation transaction sent with ID: ${result}`);
+
+            console.info(`[App] ✅ Successfully created Asset!`, {
+                confirmedRound: result.confirmedRound,
+                txIDs: result.txIDs
+            })
+        } catch (error) {
+            console.error('[App] Error creating asset:', error);
+        }
+    };
+
+
     return (
         <div>
             <div className='my-4'>
@@ -140,6 +178,14 @@ const TxnLab: React.FC = () => {
                     )}
                 </div>
             ))}
+
+            <Button
+                variant='warning'
+                onClick={() => createAsset()}
+            >
+                Make An Asset
+            </Button>
+
         </div>
     )
 }
