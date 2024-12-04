@@ -1,7 +1,8 @@
 import { NetworkId, useWallet, type Wallet } from '@txnlab/use-wallet-react'
 import algosdk from 'algosdk'
 import * as React from 'react'
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, Row } from 'react-bootstrap'
+import BetOnAlgoPriceModal from "../../components/BetOnAlgoPriceModal";
 
 const TxnLab: React.FC = () => {
     const {
@@ -10,21 +11,75 @@ const TxnLab: React.FC = () => {
         activeNetwork,
         setActiveNetwork,
         transactionSigner,
-        wallets
+        wallets,
     } = useWallet()
 
     const [isSending, setIsSending] = React.useState(false)
+    const [showModal, setShowModal] = React.useState(false)
 
     const isConnectDisabled = (wallet: Wallet) => {
-        if (wallet.isConnected) {
-            return true
-        }
-        return false
+        return wallet.isConnected
     }
 
     const setActiveAccount = (event: React.ChangeEvent<HTMLSelectElement>, wallet: Wallet) => {
         const target = event.target
         wallet.setActiveAccount(target.value)
+    }
+
+    const betTransaction = async (amount: number, condition: string, dateTime: string) => {
+        try {
+            if (!activeAddress) {
+                throw new Error('[App] No active account')
+            }
+
+            // Fetch the suggested parameters from the Algorand network
+            const suggestedParams = await algodClient.getTransactionParams().do()
+
+            // Define the application index (ID of the smart contract)
+            const appIndex = 12345 // Replace with your actual app index
+
+            // Convert bet arguments to Uint8Array using TextEncoder
+            const appArgs = [
+                new TextEncoder().encode(amount.toString()),  // Bet amount
+                new TextEncoder().encode(condition),          // Condition (over/under)
+                new TextEncoder().encode(dateTime),           // Datetime
+            ]
+
+            // Define the onCompletion type directly if 'OnCompletion' is not available
+            const onCompletion = 0;  // 0 represents 'NoOp'
+
+            // Create the application call transaction object
+            const betTransaction = algosdk.makeApplicationCallTxnFromObject({
+                from: activeAddress,         // Sender's address (active account)
+                suggestedParams,             // Suggested transaction params
+                appIndex: appIndex,          // Application index (ID of the smart contract)
+                onComplete: onCompletion,  // No operation on completion
+                appArgs: appArgs,            // Arguments to pass to the smart contract
+                accounts: [],                // Optional: Additional accounts (if needed)
+                note: new TextEncoder().encode('Bet transaction for price'), // Optional: Attach a note
+            })
+
+            // Create an atomic transaction composer
+            const atc = new algosdk.AtomicTransactionComposer()
+            atc.addTransaction({
+                txn: betTransaction,
+                signer: transactionSigner, // Your transaction signer function
+            })
+
+            setIsSending(true)
+
+            // Execute the transaction
+            const result = await atc.execute(algodClient, 4)
+
+            console.info(`[App] ✅ Successfully sent bet transaction!`, {
+                confirmedRound: result.confirmedRound,
+                txIDs: result.txIDs,
+            })
+        } catch (error) {
+            console.error('[App] Error sending bet transaction:', error)
+        } finally {
+            setIsSending(false)
+        }
     }
 
     const sendTransaction = async () => {
@@ -40,7 +95,7 @@ const TxnLab: React.FC = () => {
                 from: activeAddress,
                 to: activeAddress,
                 amount: 0,
-                suggestedParams
+                suggestedParams,
             })
 
             atc.addTransaction({ txn: transaction, signer: transactionSigner })
@@ -53,7 +108,7 @@ const TxnLab: React.FC = () => {
 
             console.info(`[App] ✅ Successfully sent transaction!`, {
                 confirmedRound: result.confirmedRound,
-                txIDs: result.txIDs
+                txIDs: result.txIDs,
             })
         } catch (error) {
             console.error('[App] Error signing transaction:', error)
@@ -65,7 +120,7 @@ const TxnLab: React.FC = () => {
     const createAsset = async () => {
         try {
             if (!activeAddress) {
-                throw new Error('[App] No active account');
+                throw new Error('[App] No active account')
             }
 
             const atc = new algosdk.AtomicTransactionComposer()
@@ -83,38 +138,37 @@ const TxnLab: React.FC = () => {
                 freeze: undefined,
                 clawback: undefined,
                 suggestedParams,
-            });
+            })
 
             atc.addTransaction({ txn: transaction, signer: transactionSigner })
 
             const result = await atc.execute(algodClient, 4)
-            console.info(`[App] Asset creation transaction sent with ID: ${result}`);
+            console.info(`[App] Asset creation transaction sent with ID: ${result}`)
 
             console.info(`[App] ✅ Successfully created Asset!`, {
                 confirmedRound: result.confirmedRound,
-                txIDs: result.txIDs
+                txIDs: result.txIDs,
             })
         } catch (error) {
-            console.error('[App] Error creating asset:', error);
+            console.error('[App] Error creating asset:', error)
         }
-    };
-
+    }
 
     return (
         <div>
             <div className='my-4'>
                 <h4>
-                    Current Network: <span className="active-network">{activeNetwork}</span>
+                    Current Network: <span className='active-network'>{activeNetwork}</span>
                 </h4>
                 <Button
-                    variant="secondary"
+                    variant='secondary'
                     onClick={() => setActiveNetwork(NetworkId.BETANET)}
                     disabled={activeNetwork === NetworkId.BETANET}
                 >
                     Set to Betanet
                 </Button>
                 <Button
-                    variant="secondary"
+                    variant='secondary'
                     className='mx-4'
                     onClick={() => setActiveNetwork(NetworkId.TESTNET)}
                     disabled={activeNetwork === NetworkId.TESTNET}
@@ -122,7 +176,7 @@ const TxnLab: React.FC = () => {
                     Set to Testnet
                 </Button>
                 <Button
-                    variant="secondary"
+                    variant='secondary'
                     onClick={() => setActiveNetwork(NetworkId.MAINNET)}
                     disabled={activeNetwork === NetworkId.MAINNET}
                 >
@@ -131,12 +185,12 @@ const TxnLab: React.FC = () => {
             </div>
 
             {wallets.map((wallet) => (
-                <div key={wallet.id} className="my-4">
+                <div key={wallet.id} className='my-4'>
                     <h4>
                         {wallet.metadata.name} {wallet.isActive ? '[Active]' : ''}
                     </h4>
 
-                    <div className="wallet-buttons">
+                    <div className='wallet-buttons'>
                         <Button
                             onClick={() => wallet.connect()}
                             disabled={isConnectDisabled(wallet)}
@@ -179,15 +233,30 @@ const TxnLab: React.FC = () => {
                 </div>
             ))}
 
-            <Button
-                variant='warning'
-                onClick={() => createAsset()}
-            >
-                Make An Asset
-            </Button>
+            <Row className='col-md-2 my-2'>
+                <Button variant='warning' onClick={() => createAsset()}>
+                    Make An Asset
+                </Button>
+            </Row>
 
+            <div>
+                <Row className='col-md-2 my-2'>
+                    <Button variant='warning' onClick={() => setShowModal(true)}>
+                        Bet On Algo
+                    </Button>
+                </Row>
+
+                {/* Modal for placing a bet */}
+                <BetOnAlgoPriceModal
+                    show={showModal}
+                    onHide={() => setShowModal(false)}
+                    onSend={betTransaction}
+                />
+
+                {isSending && <div>Sending transaction...</div>}
+            </div>
         </div>
     )
 }
 
-export default TxnLab;
+export default TxnLab
