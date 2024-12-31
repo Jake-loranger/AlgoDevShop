@@ -32,43 +32,36 @@ const TxnLab: React.FC = () => {
                 throw new Error('[App] No active account')
             }
 
-            // Fetch the suggested parameters from the Algorand network
             const suggestedParams = await algodClient.getTransactionParams().do()
 
-            // Define the application index (ID of the smart contract)
-            const appIndex = 12345 // Replace with your actual app index
+            const appIndex = 2578536498 // Replace with your actual app index
 
-            // Convert bet arguments to Uint8Array using TextEncoder
             const appArgs = [
-                new TextEncoder().encode(amount.toString()),  // Bet amount
-                new TextEncoder().encode(condition),          // Condition (over/under)
-                new TextEncoder().encode(dateTime),           // Datetime
+                new TextEncoder().encode(amount.toString()),
+                new TextEncoder().encode(condition),         
+                new TextEncoder().encode(dateTime),           
             ]
 
-            // Define the onCompletion type directly if 'OnCompletion' is not available
-            const onCompletion = 0;  // 0 represents 'NoOp'
-
-            // Create the application call transaction object
             const betTransaction = algosdk.makeApplicationCallTxnFromObject({
-                from: activeAddress,         // Sender's address (active account)
-                suggestedParams,             // Suggested transaction params
-                appIndex: appIndex,          // Application index (ID of the smart contract)
-                onComplete: onCompletion,  // No operation on completion
-                appArgs: appArgs,            // Arguments to pass to the smart contract
-                accounts: [],                // Optional: Additional accounts (if needed)
-                note: new TextEncoder().encode('Bet transaction for price'), // Optional: Attach a note
+                from: activeAddress,       
+                suggestedParams,           
+                appIndex: appIndex,        
+                onComplete: 0,  
+                appArgs: appArgs,          
+                accounts: [],              
+                note: new TextEncoder().encode(
+                `Bet: Algo price ${condition} ${amount} at ${dateTime}`
+            ),
             })
 
-            // Create an atomic transaction composer
             const atc = new algosdk.AtomicTransactionComposer()
             atc.addTransaction({
                 txn: betTransaction,
-                signer: transactionSigner, // Your transaction signer function
+                signer: transactionSigner, 
             })
 
             setIsSending(true)
 
-            // Execute the transaction
             const result = await atc.execute(algodClient, 4)
 
             console.info(`[App] ✅ Successfully sent bet transaction!`, {

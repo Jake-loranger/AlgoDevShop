@@ -1,0 +1,79 @@
+{
+  "name": "BetOnAlgoPrice",
+  "desc": "",
+  "methods": [
+    {
+      "name": "createApplication",
+      "desc": "Create the application",
+      "args": [
+        {
+          "name": "price",
+          "type": "uint64",
+          "desc": "The target price of ALGO"
+        },
+        {
+          "name": "date",
+          "type": "uint64",
+          "desc": "The target date (timestamp)"
+        },
+        {
+          "name": "condition",
+          "type": "string",
+          "desc": "The condition (Over or Under)"
+        },
+        {
+          "name": "amount",
+          "type": "uint64",
+          "desc": "The amount to bet (in ALGO)"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "optIn",
+      "desc": "Opt-in to the contract (per user)",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "placeBet",
+      "desc": "Place a bet on the contract",
+      "args": [
+        {
+          "name": "amount",
+          "type": "uint64",
+          "desc": "The amount to wager in ALGO"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "settleBet",
+      "desc": "Settle the bet based on whether the user won or lost",
+      "args": [
+        {
+          "name": "isWinner",
+          "type": "bool",
+          "desc": "Boolean indicating if the sender is the winner"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "deleteApplication",
+      "desc": "Method to delete the application\nThis method transfers any remaining funds back to the creator",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { Modal, Button, Form, Col, Row } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 import { useState } from 'react';
 
 interface BetOnAlgoPriceModalProps {
